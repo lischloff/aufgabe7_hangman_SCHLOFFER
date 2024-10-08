@@ -12,10 +12,13 @@ public class hangmanView {
     private JTextField wordField;
     private JTextArea guessedLetters;
     private JLabel hangmanPicture;
-    private JTextField letterInputField; // Neues Textfeld für Buchstabeneingaben
+    private JTextField letterInputField;
 
     private String wordToGuess = "Fenster"; // Das zu ratende Wort
     private StringBuilder currentGuess; // Hält den aktuellen Stand der erratenen Buchstaben
+    private int errorCount = 0; // Anzahl der verlorenen Versuche
+    private final int MAX_ERRORS = 10; // Maximale Anzahl der verlorenen Versuche
+
 
     public hangmanView() {
         // Initialisiere den aktuellen Stand mit Unterstrichen
@@ -44,6 +47,11 @@ public class hangmanView {
     private void checkLetter(char letter) {
         boolean found = false;
 
+        // Überprüfe, ob das Spiel bereits verloren ist
+        if (errorCount >= MAX_ERRORS) {
+            return; // Keine weiteren Eingaben mehr möglich
+        }
+
         // Durchlaufen des Wortes, um zu sehen, ob der Buchstabe vorkommt
         for (int i = 0; i < wordToGuess.length(); i++) {
             if (wordToGuess.toLowerCase().charAt(i) == letter) {
@@ -56,9 +64,22 @@ public class hangmanView {
         if (found) {
             // Aktualisiere das Textfeld mit dem erratenen Wort
             wordField.setText(currentGuess.toString());
+
+            //Überprüfe, ob das gesamte Wort erraten wurde
+            if (!currentGuess.toString().contains("_")){
+                JOptionPane.showMessageDialog(null, "Geschafft! Das Wort ist: " + wordToGuess);
+            }
         } else {
             // Wenn der Buchstabe nicht im Wort vorkommt, zeige ihn in guessedLetters an
             guessedLetters.append(letter + "\n");
+
+            //Erhöhe den Fehlerzähler
+            errorCount++;
+
+            // Überprüfe, ob das Spiel bereits verloren ist
+            if (errorCount >= MAX_ERRORS) {
+                JOptionPane.showMessageDialog(null, "Leider verloren! Das Wort war: " + wordToGuess);
+            }
         }
     }
 
