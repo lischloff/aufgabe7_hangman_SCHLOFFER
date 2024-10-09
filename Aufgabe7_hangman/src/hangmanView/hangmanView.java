@@ -1,11 +1,9 @@
-//Project: Hangman
-//Author: Schloffer Lisa
-//Date: 08.10.2024
-
 package hangmanView;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class hangmanView {
     private JPanel hangmanPanel;
@@ -13,26 +11,27 @@ public class hangmanView {
     private JTextArea guessedLetters;
     private JLabel hangmanPicture;
     private JTextField letterInputField;
+    private JLabel labelText;
+    private JButton newGameBtn;
 
-    private String wordToGuess = "Fenster"; // Das zu ratende Wort
+    private String wordToGuess;
     private StringBuilder currentGuess; // Hält den aktuellen Stand der erratenen Buchstaben
     private int errorCount = 0; // Anzahl der verlorenen Versuche
-    private final int MAX_ERRORS = 10; // Maximale Anzahl der verlorenen Versuche
-
+    private final int MAX_ERRORS = 10; // Maximale Anzahl der Fehler
+    private ArrayList<String> easyWords;
+    private ArrayList<String> mediumWords;
+    private ArrayList<String> hardWords;
 
     public hangmanView() {
-        // Initialisiere den aktuellen Stand mit Unterstrichen
-        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));
-        wordField.setText(currentGuess.toString());
+        initializeWordLists(); // Initialisiere die Wortlisten
+        setupNewGame();
 
         // Hinzufügen eines ActionListeners für die Buchstabeneingabe
         letterInputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Den eingegebenen Buchstaben erhalten
                 String input = letterInputField.getText().toLowerCase();
                 letterInputField.setText(""); // Textfeld nach Eingabe leeren
-
                 // Sicherstellen, dass nur ein Buchstabe eingegeben wird
                 if (input.length() == 1 && Character.isLetter(input.charAt(0))) {
                     checkLetter(input.charAt(0));
@@ -41,6 +40,52 @@ public class hangmanView {
                 }
             }
         });
+
+        // Hinzufügen eines ActionListeners für den neuen Spielstart
+        newGameBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setupNewGame();
+            }
+        });
+    }
+
+    // Methode zur Initialisierung eines neuen Spiels
+    private void setupNewGame() {
+        errorCount = 0; // Fehlerzähler zurücksetzen
+        guessedLetters.setText(""); // Bereich für geratene Buchstaben leeren
+
+        // Auswahl der Schwierigkeitsstufe durch den Benutzer
+        String[] options = {"Einfach", "Mittel", "Schwer"};
+        int difficulty = JOptionPane.showOptionDialog(
+                null,
+                "Wähle eine Schwierigkeitsstufe:",
+                "Schwierigkeitsgrad",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        // Basierend auf der Auswahl ein Wort zufällig aus der entsprechenden Liste auswählen
+        switch (difficulty) {
+            case 0: // Einfach
+                wordToGuess = getRandomWord(easyWords);
+                break;
+            case 1: // Mittel
+                wordToGuess = getRandomWord(mediumWords);
+                break;
+            case 2: // Schwer
+                wordToGuess = getRandomWord(hardWords);
+                break;
+            default:
+                wordToGuess = getRandomWord(easyWords); // Standard: einfach
+        }
+
+        // Bereite das aktuelle Wort zum Erraten vor
+        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));
+        wordField.setText(currentGuess.toString());
     }
 
     // Methode zur Überprüfung, ob der Buchstabe im Wort vorkommt
@@ -65,20 +110,28 @@ public class hangmanView {
             // Aktualisiere das Textfeld mit dem erratenen Wort
             wordField.setText(currentGuess.toString());
 
-            //Überprüfe, ob das gesamte Wort erraten wurde
-            if (!currentGuess.toString().contains("_")){
+            // Überprüfe, ob das gesamte Wort erraten wurde
+            if (!currentGuess.toString().contains("_")) {
                 JOptionPane.showMessageDialog(null, "Geschafft! Das Wort ist: " + wordToGuess);
+                int response = JOptionPane.showConfirmDialog(null, "Möchtest du ein neues Spiel starten?", "Neues Spiel", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    setupNewGame();
+                }
             }
         } else {
             // Wenn der Buchstabe nicht im Wort vorkommt, zeige ihn in guessedLetters an
             guessedLetters.append(letter + "\n");
 
-            //Erhöhe den Fehlerzähler
+            // Erhöhe den Fehlerzähler
             errorCount++;
 
             // Überprüfe, ob das Spiel bereits verloren ist
             if (errorCount >= MAX_ERRORS) {
                 JOptionPane.showMessageDialog(null, "Leider verloren! Das Wort war: " + wordToGuess);
+                int response = JOptionPane.showConfirmDialog(null, "Möchtest du ein neues Spiel starten?", "Neues Spiel", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    setupNewGame();
+                }
             }
         }
     }
@@ -96,6 +149,55 @@ public class hangmanView {
         }
 
         return hiddenWord.toString();
+    }
+
+    // Methode, die ein zufälliges Wort aus einer Liste zurückgibt
+    private String getRandomWord(ArrayList<String> wordList) {
+        int randomIndex = (int) (Math.random() * wordList.size());
+        return wordList.get(randomIndex);
+    }
+
+    // Methode zur Initialisierung der Wortlisten
+    private void initializeWordLists() {
+        easyWords = new ArrayList<>();
+        mediumWords = new ArrayList<>();
+        hardWords = new ArrayList<>();
+
+        // Einfache Wörter
+        easyWords.add("Haus");
+        easyWords.add("Baum");
+        easyWords.add("Hund");
+        easyWords.add("Katze");
+        easyWords.add("Tisch");
+        easyWords.add("Stuhl");
+        easyWords.add("Auto");
+        easyWords.add("Buch");
+        easyWords.add("Fisch");
+        easyWords.add("Brot");
+
+        // Mittlere Wörter
+        mediumWords.add("Schule");
+        mediumWords.add("Garten");
+        mediumWords.add("Fenster");
+        mediumWords.add("Lampe");
+        mediumWords.add("Blume");
+        mediumWords.add("Wasser");
+        mediumWords.add("Sonne");
+        mediumWords.add("Regen");
+        mediumWords.add("Vogel");
+        mediumWords.add("Apfel");
+
+        // Schwierige Wörter
+        hardWords.add("Schmetterling");
+        hardWords.add("Bibliothek");
+        hardWords.add("Abenteuer");
+        hardWords.add("Freundschaft");
+        hardWords.add("Geheimnis");
+        hardWords.add("Wissenschaft");
+        hardWords.add("Entdeckung");
+        hardWords.add("Herausforderung");
+        hardWords.add("Unabhängigkeit");
+        hardWords.add("Verantwortung");
     }
 
     public static void main(String[] args) {
