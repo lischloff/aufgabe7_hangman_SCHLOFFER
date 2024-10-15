@@ -104,7 +104,6 @@ public class hangmanView {
                 found = true;  // Setzt auf true, wenn der Buchstabe gefunden wurde
             }
         }
-
         // Wenn der Buchstabe im Wort gefunden wurde
         if (found) {
             wordField.setText(currentGuess.toString());  // Aktualisiert das erratene Wortfeld
