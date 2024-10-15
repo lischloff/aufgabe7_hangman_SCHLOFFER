@@ -4,207 +4,157 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class hangmanView {
+    // Komponenten für das Spiel
     private JPanel hangmanPanel;
     private JTextField wordField;
     private JTextArea guessedLetters;
     private JLabel hangmanPicture;
     private JTextField letterInputField;
     private JLabel labelText;
-    private JButton newGameBtn;
+    private JButton newGameBtn; // Button für neues Spiel
+    private JLabel wordLabel;
 
-    private String wordToGuess;
-    private StringBuilder currentGuess; // Hält den aktuellen Stand der erratenen Buchstaben
-    private int errorCount = 0; // Anzahl der verlorenen Versuche
-    private final int MAX_ERRORS = 10; // Maximale Anzahl der Fehler
-    private ArrayList<String> easyWords;
-    private ArrayList<String> mediumWords;
-    private ArrayList<String> hardWords;
+    private String wordToGuess;  // Das zu erratende Wort
+    private StringBuilder currentGuess;  // Der aktuelle Stand des geratenen Wortes (z.B. "_ _ _")
+    private int errorCount = 0;
+    private final int MAX_ERRORS = 10;
+
+    private ArrayList<String> wordList;  // Liste mit Wörtern
 
     public hangmanView() {
-        initializeWordLists(); // Initialisiere die Wortlisten
-        setupNewGame();
+        // Initialisiere die Liste der Wörter
+        wordList = new ArrayList<>();
+        wordList.add("Katze");
+        wordList.add("Hund");
+        wordList.add("Computer");
+        wordList.add("Programmieren");
+        wordList.add("Java");
 
-        // Hinzufügen eines ActionListeners für die Buchstabeneingabe
+        // Wähle zufällig ein Wort aus der Liste
+        wordToGuess = getRandomWord();
+        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));  // Erstellen der Darstellung des verborgenen Wortes
+
+        // Initiales Wort im Textfeld anzeigen
+        wordField.setText(currentGuess.toString());
+
+        // Listener für das Eingabefeld des Buchstabens
         letterInputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String input = letterInputField.getText().toLowerCase();
-                letterInputField.setText(""); // Textfeld nach Eingabe leeren
-                // Sicherstellen, dass nur ein Buchstabe eingegeben wird
+                String input = letterInputField.getText().toLowerCase();  // Eingabe in Kleinbuchstaben umwandeln
+                letterInputField.setText("");  // Eingabefeld nach der Eingabe leeren
                 if (input.length() == 1 && Character.isLetter(input.charAt(0))) {
                     checkLetter(input.charAt(0));
                 } else {
-                    JOptionPane.showMessageDialog(null, "Bitte einen gültigen Buchstaben eingeben.");
+                    // Zeigt eine Fehlermeldung an, wenn die Eingabe ungültig ist
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Bitte gib nur einen einzelnen Buchstaben ein.",
+                            "Ungültige Eingabe",
+                            JOptionPane.ERROR_MESSAGE // Zeigt die Fehlermeldung an
+                    );
                 }
             }
         });
 
-        // Hinzufügen eines ActionListeners für den neuen Spielstart
+        // Listener für den "Neues Spiel"-Button
         newGameBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                setupNewGame();
+                setupNewGame();  // Startet ein neues Spiel, wenn der Button gedrückt wird
             }
         });
     }
 
-    // Methode zur Initialisierung eines neuen Spiels
     private void setupNewGame() {
-        errorCount = 0; // Fehlerzähler zurücksetzen
-        guessedLetters.setText(""); // Bereich für geratene Buchstaben leeren
+        errorCount = 0;  // Fehlerzähler zurücksetzen
+        guessedLetters.setText("");  // Liste der falsch geratenen Buchstaben leeren
 
-        // Auswahl der Schwierigkeitsstufe durch den Benutzer
-        String[] options = {"Einfach", "Mittel", "Schwer"};
-        int difficulty = JOptionPane.showOptionDialog(
-                null,
-                "Wähle eine Schwierigkeitsstufe:",
-                "Schwierigkeitsgrad",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
+        // Wähle ein neues zufälliges Wort
+        wordToGuess = getRandomWord();
+        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));  // Erstellen der Darstellung des verborgenen Wortes
 
-        // Basierend auf der Auswahl ein Wort zufällig aus der entsprechenden Liste auswählen
-        switch (difficulty) {
-            case 0: // Einfach
-                wordToGuess = getRandomWord(easyWords);
-                break;
-            case 1: // Mittel
-                wordToGuess = getRandomWord(mediumWords);
-                break;
-            case 2: // Schwer
-                wordToGuess = getRandomWord(hardWords);
-                break;
-            default:
-                wordToGuess = getRandomWord(easyWords); // Standard: einfach
-        }
-
-        // Bereite das aktuelle Wort zum Erraten vor
-        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));
-        wordField.setText(currentGuess.toString());
+        wordField.setText(currentGuess.toString());  // Zeigt das verborgene Wort im Feld an
+        updateImage(0);  // Setzt das Bild des Galgenmännchens zurück
     }
 
-    // Methode zur Überprüfung, ob der Buchstabe im Wort vorkommt
-    private void checkLetter(char letter) {
-        boolean found = false;
-
-        // Überprüfe, ob das Spiel bereits verloren ist
-        if (errorCount >= MAX_ERRORS) {
-            return; // Keine weiteren Eingaben mehr möglich
-        }
-
-        // Durchlaufen des Wortes, um zu sehen, ob der Buchstabe vorkommt
-        for (int i = 0; i < wordToGuess.length(); i++) {
-            if (wordToGuess.toLowerCase().charAt(i) == letter) {
-                // Ersetze den Unterstrich durch den richtigen Buchstaben
-                currentGuess.setCharAt(i * 2, wordToGuess.charAt(i)); // i * 2 wegen Leerzeichen
-                found = true;
-            }
-        }
-
-        if (found) {
-            // Aktualisiere das Textfeld mit dem erratenen Wort
-            wordField.setText(currentGuess.toString());
-
-            // Überprüfe, ob das gesamte Wort erraten wurde
-            if (!currentGuess.toString().contains("_")) {
-                JOptionPane.showMessageDialog(null, "Geschafft! Das Wort ist: " + wordToGuess);
-                int response = JOptionPane.showConfirmDialog(null, "Möchtest du ein neues Spiel starten?", "Neues Spiel", JOptionPane.YES_NO_OPTION);
-                if (response == JOptionPane.YES_OPTION) {
-                    setupNewGame();
-                }
-            }
-        } else {
-            // Wenn der Buchstabe nicht im Wort vorkommt, zeige ihn in guessedLetters an
-            guessedLetters.append(letter + "\n");
-
-            // Erhöhe den Fehlerzähler
-            errorCount++;
-
-            // Überprüfe, ob das Spiel bereits verloren ist
-            if (errorCount >= MAX_ERRORS) {
-                JOptionPane.showMessageDialog(null, "Leider verloren! Das Wort war: " + wordToGuess);
-                int response = JOptionPane.showConfirmDialog(null, "Möchtest du ein neues Spiel starten?", "Neues Spiel", JOptionPane.YES_NO_OPTION);
-                if (response == JOptionPane.YES_OPTION) {
-                    setupNewGame();
-                }
-            }
-        }
-    }
-
-    // Methode zur Umwandlung des Wortes in eine Zeichenkette mit Unterstrichen
-    private String getHiddenWord(String word) {
-        StringBuilder hiddenWord = new StringBuilder();
-
-        // Durchlaufe jedes Zeichen im Wort und füge einen Unterstrich hinzu
-        for (int i = 0; i < word.length(); i++) {
-            hiddenWord.append("_");
-            if (i < word.length() - 1) {
-                hiddenWord.append(" "); // Füge ein Leerzeichen zwischen die Unterstriche hinzu
-            }
-        }
-
-        return hiddenWord.toString();
-    }
-
-    // Methode, die ein zufälliges Wort aus einer Liste zurückgibt
-    private String getRandomWord(ArrayList<String> wordList) {
-        int randomIndex = (int) (Math.random() * wordList.size());
+    // Methode, um ein zufälliges Wort aus der Liste auszuwählen
+    private String getRandomWord() {
+        Random random = new Random();
+        int randomIndex = random.nextInt(wordList.size());
         return wordList.get(randomIndex);
     }
 
-    // Methode zur Initialisierung der Wortlisten
-    private void initializeWordLists() {
-        easyWords = new ArrayList<>();
-        mediumWords = new ArrayList<>();
-        hardWords = new ArrayList<>();
+    // Methode zur Überprüfung des eingegebenen Buchstabens
+    private void checkLetter(char letter) {
+        boolean found = false;  // Gibt an, ob der Buchstabe im Wort gefunden wurde
 
-        // Einfache Wörter
-        easyWords.add("Haus");
-        easyWords.add("Baum");
-        easyWords.add("Hund");
-        easyWords.add("Katze");
-        easyWords.add("Tisch");
-        easyWords.add("Stuhl");
-        easyWords.add("Auto");
-        easyWords.add("Buch");
-        easyWords.add("Fisch");
-        easyWords.add("Brot");
+        // Beendet die Methode, wenn die maximale Anzahl an Fehlern erreicht wurde
+        if (errorCount >= MAX_ERRORS) {
+            return;
+        }
 
-        // Mittlere Wörter
-        mediumWords.add("Schule");
-        mediumWords.add("Garten");
-        mediumWords.add("Fenster");
-        mediumWords.add("Lampe");
-        mediumWords.add("Blume");
-        mediumWords.add("Wasser");
-        mediumWords.add("Sonne");
-        mediumWords.add("Regen");
-        mediumWords.add("Vogel");
-        mediumWords.add("Apfel");
+        // Durchläuft das zu erratende Wort und ersetzt Unterstriche durch den richtigen Buchstaben
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            if (wordToGuess.toLowerCase().charAt(i) == letter) {  // Vergleicht den Buchstaben
+                currentGuess.setCharAt(i * 2, wordToGuess.charAt(i));  // Setzt den gefundenen Buchstaben an die richtige Position
+                found = true;  // Setzt auf true, wenn der Buchstabe gefunden wurde
+            }
+        }
 
-        // Schwierige Wörter
-        hardWords.add("Schmetterling");
-        hardWords.add("Bibliothek");
-        hardWords.add("Abenteuer");
-        hardWords.add("Freundschaft");
-        hardWords.add("Geheimnis");
-        hardWords.add("Wissenschaft");
-        hardWords.add("Entdeckung");
-        hardWords.add("Herausforderung");
-        hardWords.add("Unabhängigkeit");
-        hardWords.add("Verantwortung");
+        // Wenn der Buchstabe im Wort gefunden wurde
+        if (found) {
+            wordField.setText(currentGuess.toString());  // Aktualisiert das erratene Wortfeld
+            // Überprüft, ob das ganze Wort erraten wurde
+            if (!currentGuess.toString().contains("_")) {
+                wordLabel.setText("Das Wort ist: " + wordToGuess);  // Zeigt das vollständige Wort an
+            }
+        } else {
+            // Wenn der Buchstabe nicht gefunden wurde
+            guessedLetters.append(letter + "\n");  // Fügt den Buchstaben zur Liste der falsch geratenen Buchstaben hinzu
+            errorCount++;  // Erhöht die Fehleranzahl
+            updateImage(errorCount);  // Aktualisiert das Bild des Galgenmännchens
+
+            // Wenn die maximale Anzahl an Fehlern erreicht wurde
+            if (errorCount >= MAX_ERRORS) {
+                wordLabel.setText("Leider verloren! Das Wort war: " + wordToGuess);  // Zeigt eine Verlustnachricht an
+            }
+        }
     }
 
+    // Methode, um ein Wort als verborgenes Wort (mit Unterstrichen) anzuzeigen
+    private String getHiddenWord(String word) {
+        StringBuilder hiddenWord = new StringBuilder();
+
+        // Fügt für jeden Buchstaben im Wort einen Unterstrich hinzu
+        for (int i = 0; i < word.length(); i++) {
+            hiddenWord.append("_");  // Fügt einen Unterstrich hinzu
+            if (i < word.length() - 1) {
+                hiddenWord.append(" ");  // Fügt ein Leerzeichen zwischen den Buchstaben hinzu
+            }
+        }
+
+        return hiddenWord.toString();  // Gibt das verborgene Wort zurück
+    }
+
+    // Aktualisiert das Bild des Galgenmännchens basierend auf der Anzahl der Fehlversuche
+    private void updateImage(int attempts) {
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/hangman" + attempts + ".png"));
+        if (icon.getIconWidth() == -1) {
+            System.err.println("Bild nicht gefunden: /images/hangman" + attempts + ".png");
+        }
+        hangmanPicture.setIcon(icon);
+    }
+
+    // Hauptmethode zum Starten des Spiels
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Hangman Spiel");
-        frame.setContentPane(new hangmanView().hangmanPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
+        JFrame frame = new JFrame("Hangman Spiel");  // Erstellt ein neues Fenster für das Spiel
+        frame.setContentPane(new hangmanView().hangmanPanel);  // Setzt das Panel des Spiels in das Fenster
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Schließt das Fenster, wenn auf "Schließen" geklickt wird
+        frame.pack();  // Passt die Größe des Fensters an den Inhalt an
         frame.setVisible(true);
     }
 }
