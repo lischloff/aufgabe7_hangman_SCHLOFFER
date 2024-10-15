@@ -1,3 +1,7 @@
+//Project: Hangman
+//Author: Schloffer Lisa
+//Date: 08.10.2024
+
 package hangmanView;
 
 import javax.swing.*;
