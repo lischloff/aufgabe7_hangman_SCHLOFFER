@@ -3,6 +3,9 @@ package hangmanView;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -21,24 +24,12 @@ public class hangmanView {
     private StringBuilder currentGuess;  // Der aktuelle Stand des geratenen Wortes (z.B. "_ _ _")
     private int errorCount = 0;
     private final int MAX_ERRORS = 10;
-
-    private ArrayList<String> wordList;  // Liste mit Wörtern
+    private ArrayList<String> wordList;  // Liste der Wörter
 
     public hangmanView() {
-        // Initialisiere die Liste der Wörter
-        wordList = new ArrayList<>();
-        wordList.add("Katze");
-        wordList.add("Hund");
-        wordList.add("Computer");
-        wordList.add("Programmieren");
-        wordList.add("Java");
-
-        // Wähle zufällig ein Wort aus der Liste
-        wordToGuess = getRandomWord();
-        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));  // Erstellen der Darstellung des verborgenen Wortes
-
-        // Initiales Wort im Textfeld anzeigen
-        wordField.setText(currentGuess.toString());
+        wordList = new ArrayList<>(); // Initialisiere die Wortliste
+        loadWords(); // Lade die Wörter aus der Datei
+        setupNewGame(); // Starte ein neues Spiel, um ein Wort auszuwählen
 
         // Listener für das Eingabefeld des Buchstabens
         letterInputField.addActionListener(new ActionListener() {
@@ -69,23 +60,32 @@ public class hangmanView {
         });
     }
 
+    private void loadWords() {
+        try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\lisas\\Berufsschule\\September_November_24\\Labor\\ITL1_2\\aufgabe7_hangman_SCHLOFFER\\Aufgabe7_hangman\\src\\words.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                wordList.add(line.trim()); // Füge jedes Wort zur Liste hinzu
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Fehler beim Laden der Wortliste: " + e.getMessage(),
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void setupNewGame() {
         errorCount = 0;  // Fehlerzähler zurücksetzen
         guessedLetters.setText("");  // Liste der falsch geratenen Buchstaben leeren
-
-        // Wähle ein neues zufälliges Wort
-        wordToGuess = getRandomWord();
-        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));  // Erstellen der Darstellung des verborgenen Wortes
-
+        if (!wordList.isEmpty()) {
+            Random rand = new Random();
+            wordToGuess = wordList.get(rand.nextInt(wordList.size())); // Wähle ein zufälliges Wort aus der Liste
+        } else {
+            wordToGuess = "Katze"; // Fallback-Wort, falls die Liste leer ist
+        }
+        currentGuess = new StringBuilder(getHiddenWord(wordToGuess)); // Das Wort wird zufällig ausgewählt
         wordField.setText(currentGuess.toString());  // Zeigt das verborgene Wort im Feld an
         updateImage(0);  // Setzt das Bild des Galgenmännchens zurück
-    }
-
-    // Methode, um ein zufälliges Wort aus der Liste auszuwählen
-    private String getRandomWord() {
-        Random random = new Random();
-        int randomIndex = random.nextInt(wordList.size());
-        return wordList.get(randomIndex);
     }
 
     // Methode zur Überprüfung des eingegebenen Buchstabens
