@@ -35,6 +35,9 @@ public class hangmanView {
         loadWords(); // Lade die Wörter aus der Datei
         setupNewGame(); // Starte ein neues Spiel, um ein Wort auszuwählen
 
+        // Setze das wordField als nicht bearbeitbar
+        wordField.setEditable(false);
+
         // Listener für das Eingabefeld des Buchstabens
         letterInputField.addActionListener(new ActionListener() {
             @Override
@@ -85,16 +88,14 @@ public class hangmanView {
         if (!wordList.isEmpty()) {
             Random rand = new Random();
             wordToGuess = wordList.get(rand.nextInt(wordList.size())); // Wähle ein zufälliges Wort aus der Liste
-            System.out.println("Neues Wort: " + wordToGuess); // Debug-Ausgabe
         } else {
             wordToGuess = "Katze"; // Fallback-Wort, falls die Liste leer ist
         }
 
-        currentGuess = new StringBuilder(getHiddenWord(wordToGuess)); // Das Wort wird zufällig ausgewählt
-        System.out.println("Hidden Word: " + currentGuess); // Debug-Ausgabe
-
-        wordField.setText(currentGuess.toString());  // Zeigt das verborgene Wort im Feld an
-        wordLabel.setText(""); // Reset the word label in case a previous game has ended
+        // Initialisiere das versteckte Wort und zeige es im GUI
+        currentGuess = new StringBuilder(getHiddenWord(wordToGuess));
+        wordField.setText(currentGuess.toString());  // Zeige das verborgene Wort im Textfeld an
+        wordLabel.setText(""); // Falls ein vorheriges Spiel beendet war, wird das Label zurückgesetzt
         updateImage(0);  // Setzt das Bild des Galgenmännchens zurück
         guessedLetters.setEditable(false);
     }
@@ -165,7 +166,7 @@ public class hangmanView {
         JFrame frame = new JFrame("Hangman Spiel");  // Erstellt ein neues Fenster für das Spiel
         frame.setContentPane(new hangmanView().hangmanPanel);  // Setzt das Panel des Spiels in das Fenster
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Schließt das Fenster, wenn auf "Schließen" geklickt wird
-        frame.pack();  // Passt die Größe des Fensters an den Inhalt an
-        frame.setVisible(true);
+        frame.setSize(700, 700);  // Setze die feste Größe des Fensters auf 700x700 Pixel
+        frame.setVisible(true);  // Zeige das Fenster an
     }
 }
