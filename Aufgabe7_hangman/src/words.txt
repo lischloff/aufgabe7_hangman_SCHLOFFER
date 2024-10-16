@@ -39,12 +39,13 @@ Buchhandlung
 Tasse
 Lebensmittel
 Theater
+Handman
 
 
 Schmetterling
 Abenteuer
 Wissenschaft
-Kühlschrank
+LethalCompany
 Geschwindigkeit
 Elektromagnetismus
 Philosophie

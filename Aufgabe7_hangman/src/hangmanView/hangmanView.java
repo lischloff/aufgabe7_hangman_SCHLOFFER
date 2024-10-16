@@ -1,6 +1,6 @@
-//Project: Hangman
-//Author: Schloffer Lisa
-//Date: 08.10.2024
+// Project: Hangman
+// Author: Schloffer Lisa
+// Date: 08.10.2024
 
 package hangmanView;
 
@@ -81,15 +81,22 @@ public class hangmanView {
     private void setupNewGame() {
         errorCount = 0;  // Fehlerzähler zurücksetzen
         guessedLetters.setText("");  // Liste der falsch geratenen Buchstaben leeren
+
         if (!wordList.isEmpty()) {
             Random rand = new Random();
             wordToGuess = wordList.get(rand.nextInt(wordList.size())); // Wähle ein zufälliges Wort aus der Liste
+            System.out.println("Neues Wort: " + wordToGuess); // Debug-Ausgabe
         } else {
             wordToGuess = "Katze"; // Fallback-Wort, falls die Liste leer ist
         }
+
         currentGuess = new StringBuilder(getHiddenWord(wordToGuess)); // Das Wort wird zufällig ausgewählt
+        System.out.println("Hidden Word: " + currentGuess); // Debug-Ausgabe
+
         wordField.setText(currentGuess.toString());  // Zeigt das verborgene Wort im Feld an
+        wordLabel.setText(""); // Reset the word label in case a previous game has ended
         updateImage(0);  // Setzt das Bild des Galgenmännchens zurück
+        guessedLetters.setEditable(false);
     }
 
     // Methode zur Überprüfung des eingegebenen Buchstabens
@@ -108,6 +115,7 @@ public class hangmanView {
                 found = true;  // Setzt auf true, wenn der Buchstabe gefunden wurde
             }
         }
+
         // Wenn der Buchstabe im Wort gefunden wurde
         if (found) {
             wordField.setText(currentGuess.toString());  // Aktualisiert das erratene Wortfeld
